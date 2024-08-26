@@ -1,0 +1,51 @@
+name: Build and Release Win
+
+on:
+  push:
+    branches:
+      - main  # 或你的默认分支名称
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: windows-latest
+    steps:
+    - uses: actions/checkout@v3
+
+    - name: Set up Node.js
+      uses: actions/setup-node@v3
+      with:
+        node-version: 18
+        cache: 'npm'
+        
+    - name: Install Dependencies
+      run: npm install
+
+    - name: Build Win App
+      run: npm run build:win
+
+    - name: Upload artifact for deployment job
+      uses: actions/upload-artifact@v3
+      with:
+        name: Win-app
+        path: |
+          build/*.exe  # 根据你的构建产物调整
+
+    - name: Create Release
+      id: create_release
+      uses: actions/create-release@v1
+      with:
+        tag_name: xuexqg2.1修订  # 使用推送的 Git 标签作为发布标签
+        release_name: xuexqg2.1修订
+        draft: false
+        prerelease: false
+      env:
+        GITHUB_TOKEN: ${{ secrets.AA_TOKEN }}
+
+    - name: Upload Release Assets
+      uses: actions/upload-release-asset@v1
+      with:
+        upload_url: ${{ steps.create_release.outputs.upload_url }}
+        asset_path: build/*.exe  # 上传构建产物
+        asset_name: xuexqg2.1.修订.exe  # 你可以为每个文件指定不同的名称
+        asset_content_type: application/octet-stream
